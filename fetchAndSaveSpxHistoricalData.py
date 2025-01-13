@@ -4,7 +4,7 @@ from db_connection import create_connection
 
 connection = create_connection()
 
-spxHistoricalData = yf.download("^GSPC", start="2000-01-01", end="2025-01-01")
+spxHistoricalData = yf.download("^GSPC", start="1970-01-01", end="2025-01-01")
 spxHistoricalData = spxHistoricalData.reset_index()
 spxHistoricalData = list(spxHistoricalData.itertuples(index=False, name=None))
 spxHistoricalData = [row[:2] for row in spxHistoricalData]
