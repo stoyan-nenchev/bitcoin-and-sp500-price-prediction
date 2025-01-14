@@ -8,7 +8,7 @@ if connection:
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS bitcoin_historical_data (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            date DATE NOT NULL,
+            date DATETIME NOT NULL,
             price DECIMAL(15, 2) NOT NULL,
             created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -17,7 +17,7 @@ if connection:
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS spx_historical_data (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            date DATE NOT NULL,
+            date DATETIME NOT NULL,
             price DECIMAL(15, 2) NOT NULL,
             created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
