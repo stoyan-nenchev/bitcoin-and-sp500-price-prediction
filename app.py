@@ -1,14 +1,11 @@
-from datetime import timedelta
-
-import numpy as np
 import pandas as pd
-from flask import Flask, jsonify, request
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+import joblib
 
-from data_process_service import preprocess_data
+from flask import Flask, jsonify, request
+from data_process_service import preprocess_data_for_model
 from data_repository import fetch_historical_data
 from db_connection import create_connection
+from model_service import predict_future_prices, train_linear_regression
 
 app = Flask(__name__)
 
@@ -62,47 +59,45 @@ def get_bitcoin_data():
 
 @app.route('/api/predict_bitcoin_price', methods=['GET'])
 def predict_bitcoin_price():
-    start_date = request.args.get('start_date', None)
-    end_date = request.args.get('end_date', None)
-    data = fetch_historical_data('bitcoin_historical_data', start_date, end_date)
+    days = request.args.get('days', 3, int)
+    data = fetch_historical_data('bitcoin_historical_data')
 
     if not data:
         return jsonify({"message": "No data found"}), 404
 
-    X, y, scaler = preprocess_data(data)
+    df, scaler = preprocess_data_for_model(data)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+    try:
+        model = joblib.load('linear_regression_model.joblib')
+    except Exception as e:
+        return jsonify({"error": "Model not found. Please train the model first."}), 500
 
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+    future_predictions = predict_future_prices(model, df, window=5, n_predictions=days, scaler=scaler)
 
-    num_predictions = 24
+    predictions_response = [
+        {
+            "date": (df['date'].iloc[-1] + pd.Timedelta(days=i + 1)).isoformat(),
+            "predicted_price": price[0]
+        }
+        for i, price in enumerate(future_predictions)
+    ]
 
-    last_data_point = X_test[-1].reshape(1, -1)
+    return jsonify(predictions_response), 200
 
-    predictions = []
 
-    last_date = pd.to_datetime(data[-1]['date'])
+@app.route('/api/train_bitcoin_model', methods=['GET'])
+def train_model():
+    data = fetch_historical_data('bitcoin_historical_data', start_date=None, end_date=None)
+    if not data:
+        return jsonify({"message": "No data found for training."}), 404
 
-    for i in range(num_predictions):
-        future_prediction = model.predict(last_data_point)
+    df, scaler = preprocess_data_for_model(data)
 
-        future_prediction = scaler.inverse_transform(future_prediction.reshape(-1, 1))
+    model = train_linear_regression(df, window=5)
 
-        future_time = last_date + timedelta(hours=i + 1)
+    joblib.dump(model, 'linear_regression_model.joblib')
 
-        predictions.append({
-            "day": future_time.day,
-            "hour": future_time.hour,
-            "month": future_time.month,
-            "price": f"{future_prediction[0][0]:.2f}",
-            "year": future_time.year
-        })
-
-        last_data_point = np.roll(last_data_point, shift=-1, axis=1)
-        last_data_point[0, -1] = future_prediction
-
-    return jsonify(predictions), 200
+    return jsonify({"message": "Model trained and saved successfully!"}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

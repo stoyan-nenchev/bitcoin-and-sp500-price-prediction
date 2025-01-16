@@ -26,6 +26,7 @@ def handle_missing_data(df):
 
 def add_moving_average(df, window=5):
     df['moving_avg'] = df['price'].rolling(window=window).mean()
+    df['moving_avg'] = df['moving_avg'].fillna(method='bfill')  # Forward fill
     return df
 
 def scale_data(df):
