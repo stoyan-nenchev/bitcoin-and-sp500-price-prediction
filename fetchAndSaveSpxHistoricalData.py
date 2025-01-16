@@ -1,14 +1,10 @@
 import yfinance as yf
 import pandas as pd
 from db_connection import create_connection
-from datetime import datetime, timedelta
 
 connection = create_connection()
 
-end_date = datetime.today()
-start_date = end_date - timedelta(days=730)
-
-spxHistoricalData = yf.download("^GSPC", start=start_date, end=end_date, interval="1h")
+spxHistoricalData = yf.download("^GSPC", start="2010-01-01", end="2025-01-01")
 spxHistoricalData = spxHistoricalData.reset_index()
 spxHistoricalData = list(spxHistoricalData.itertuples(index=False, name=None))
 spxHistoricalData = [row[:2] for row in spxHistoricalData]

@@ -1,6 +1,8 @@
+from datetime import datetime
+
 from db_connection import create_connection
 
-def fetch_historical_data(table_name, start_date=None, end_date=None):
+def fetch_historical_data(table_name, start_date=None, end_date=None, format_dates=False):
     connection = create_connection()
     cursor = connection.cursor(dictionary=True)
 
@@ -13,6 +15,14 @@ def fetch_historical_data(table_name, start_date=None, end_date=None):
     cursor.execute(query, (start_date, end_date) if start_date and end_date else ())
 
     rows = cursor.fetchall()
+
+    if format_dates:
+        for entry in rows:
+            if 'date' in entry and entry['date']:
+                if isinstance(entry['date'], datetime):
+                    entry['date'] = entry['date'].isoformat()
+                else:
+                    entry['date'] = datetime.strptime(entry['date'], '%Y-%m-%d').isoformat()
 
     cursor.close()
     connection.close()

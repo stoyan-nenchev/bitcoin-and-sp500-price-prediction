@@ -1,14 +1,10 @@
 import yfinance as yf
 import pandas as pd
 from db_connection import create_connection
-from datetime import datetime, timedelta
 
 connection = create_connection()
 
-end_date = datetime.today()
-start_date = end_date - timedelta(days=730)
-
-bitcoinHistoricalData = yf.download("BTC-USD", start=start_date, end=end_date, interval="1h")
+bitcoinHistoricalData = yf.download("BTC-USD", start="2010-01-01", end="2025-01-01")
 bitcoinHistoricalData = bitcoinHistoricalData.reset_index()
 bitcoinHistoricalData = list(bitcoinHistoricalData.itertuples(index=False, name=None))
 bitcoinHistoricalData = [row[:2] for row in bitcoinHistoricalData]

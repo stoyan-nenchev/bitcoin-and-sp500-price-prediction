@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
-from data_prediction_service import preprocess_data
+from data_process_service import preprocess_data
 from data_repository import fetch_historical_data
 from db_connection import create_connection
 
@@ -25,7 +25,7 @@ def get_spx_data():
     cursor = connection.cursor(dictionary=True)
 
     try:
-        data = fetch_historical_data('spx_historical_data', start_date, end_date)
+        data = fetch_historical_data('spx_historical_data', start_date, end_date, format_dates=True)
         if not data:
             return jsonify({"message": "No data found"}), 404
 
@@ -47,7 +47,7 @@ def get_bitcoin_data():
     cursor = connection.cursor(dictionary=True)
 
     try:
-        data = fetch_historical_data('bitcoin_historical_data', start_date, end_date)
+        data = fetch_historical_data('bitcoin_historical_data', start_date, end_date, format_dates=True)
         if not data:
             return jsonify({"message": "No data found"}), 404
 
