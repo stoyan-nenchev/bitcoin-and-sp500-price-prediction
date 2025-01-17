@@ -8,6 +8,8 @@ from db_connection import create_connection
 from model_service import predict_future_prices, train_linear_regression
 from flask_cors import CORS
 
+from sequential_service import process_data, load_trained_model, predict_future_prices_seq
+
 app = Flask(__name__)
 CORS(app)
 
@@ -86,6 +88,30 @@ def predict_bitcoin_price():
 
     return jsonify(predictions_response), 200
 
+@app.route('/api/predict_bitcoin_seq_price')
+def predict_bitcoin_price_seq():
+    days = request.args.get('days', 3, int)
+    data = fetch_historical_data('bitcoin_historical_data')
+
+    if not data:
+        return jsonify({"message": "No data found"}), 404
+
+    model = load_trained_model()
+
+    future_predictions = predict_future_prices_seq(model, data, future_days=days)
+
+    print(f"Future Predictions: {future_predictions}")
+
+    predictions_response = [
+        {
+            "date": (pd.to_datetime(data[-1]['date']) + pd.Timedelta(days=i + 1)).isoformat(),
+            "price": float(price['price'])
+        }
+        for i, price in enumerate(future_predictions)
+    ]
+
+    return jsonify(predictions_response), 200
+
 @app.route('/api/predict_spx_price')
 def predict_spx_price():
     days = request.args.get('days', 3, int)
@@ -138,6 +164,16 @@ def train_spx_model():
     model = train_linear_regression(df, window=5)
 
     joblib.dump(model, 'spx_linear_regression_model.joblib')
+
+    return jsonify({"message": "Model trained and saved successfully!"}), 200
+
+@app.route('/api/train_bitcoin_seq_model')
+def train_bitcoin_seq_model():
+    data = fetch_historical_data('spx_historical_data', start_date=None, end_date=None)
+    if not data:
+        return jsonify({"message": "No data found for training."}), 404
+
+    process_data(data)
 
     return jsonify({"message": "Model trained and saved successfully!"}), 200
 
