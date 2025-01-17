@@ -6,8 +6,10 @@ from data_process_service import preprocess_data_for_model
 from data_repository import fetch_historical_data
 from db_connection import create_connection
 from model_service import predict_future_prices, train_linear_regression
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 def get_db_connection():
     connection = create_connection()
@@ -77,7 +79,7 @@ def predict_bitcoin_price():
     predictions_response = [
         {
             "date": (df['date'].iloc[-1] + pd.Timedelta(days=i + 1)).isoformat(),
-            "predicted_price": price[0]
+            "price": price[0]
         }
         for i, price in enumerate(future_predictions)
     ]
@@ -104,7 +106,7 @@ def predict_spx_price():
     predictions_response = [
         {
             "date": (df['date'].iloc[-1] + pd.Timedelta(days=i + 1)).isoformat(),
-            "predicted_price": price[0]
+            "price": price[0]
         }
         for i, price in enumerate(future_predictions)
     ]
