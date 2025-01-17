@@ -6,7 +6,7 @@ def preprocess_data_for_model(data):
 
     df = handle_missing_data(df)
 
-    df = add_moving_average(df, window=5)
+    # df = add_moving_average(df, window=5)
 
     df, scaler = scale_data(df)
 
@@ -15,6 +15,10 @@ def preprocess_data_for_model(data):
 def preprocess_data(data):
     df = pd.DataFrame(data)
     df['date'] = pd.to_datetime(df['date'])
+    df['year'] = df['date'].dt.year
+    df['month'] = df['date'].dt.month
+    df['day'] = df['date'].dt.day
+    df['is_weekend'] = (df['date'].dt.dayofweek >= 5).astype(int)
     df = df.sort_values(by='date')
 
     return df
