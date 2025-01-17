@@ -79,7 +79,7 @@ def predict_bitcoin_price():
     predictions_response = [
         {
             "date": (df['date'].iloc[-1] + pd.Timedelta(days=i + 1)).isoformat(),
-            "predicted_price": price[0]
+            "price": price[0]
         }
         for i, price in enumerate(future_predictions)
     ]
@@ -106,7 +106,7 @@ def predict_spx_price():
     predictions_response = [
         {
             "date": (df['date'].iloc[-1] + pd.Timedelta(days=i + 1)).isoformat(),
-            "predicted_price": price[0]
+            "price": price[0]
         }
         for i, price in enumerate(future_predictions)
     ]
